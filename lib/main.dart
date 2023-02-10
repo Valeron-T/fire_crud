@@ -43,7 +43,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   readData() {
-    print("Read");
+    print("Reads");
   }
 
   updateData() {
