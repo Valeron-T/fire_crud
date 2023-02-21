@@ -1,6 +1,12 @@
+// ignore_for_file: prefer_const_constructors
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(MaterialApp(
     theme: ThemeData(
       brightness: Brightness.light,
@@ -21,37 +27,80 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   String? studentName, studentID, studyProgramID;
   double? studentGPA;
+  CollectionReference colref =
+      FirebaseFirestore.instance.collection('MyStudents');
 
-  getStudentName(String name) {
+  setStudentName(String name) {
     this.studentName = name;
   }
 
-  getStudentID(String id) {
+  String getStudentName() {
+    String? res = studentName;
+    if (res == null || res == "") {
+      res = "No data";
+    }
+    return res;
+  }
+
+  setStudentID(String id) {
     this.studentID = id;
   }
 
-  getStudyProgramID(String programID) {
+  setStudyProgramID(String programID) {
     this.studyProgramID = programID;
   }
 
-  getStudentGPA(String gpa) {
+  setStudentGPA(String gpa) {
     this.studentGPA = double.parse(gpa);
   }
 
   createData() {
     print("Create");
+
+    Map<String, dynamic> students_map = {
+      "studentName": studentName,
+      "studentID": studentID,
+      "studentGPA": studentGPA,
+      "studyProgramID": studyProgramID
+    };
+
+    colref
+        .add(students_map)
+        .then((value) => print("User added"))
+        .catchError((error) => print("Failed to add user: $error"));
   }
 
-  readData() {
+  readData() async {
     print("Reads");
+    await colref.get().then((event) {
+      for (var doc in event.docs) {
+        print("${doc.id} => ${doc.data()}");
+      }
+    });
   }
 
   updateData() {
     print("Update");
+    Map<String, dynamic> students_map = {
+      "studentName": studentName,
+      "studentID": studentID,
+      "studentGPA": studentGPA,
+      "studyProgramID": studyProgramID
+    };
+    colref.where("studentName", isEqualTo: "QukHtPdCzYzfiookf9Hv").get();
+    colref
+        .doc("John Cena")
+        .set(students_map)
+        .then((value) => print("User updated"))
+        .catchError((error) => print("Failed to add user: $error"));
   }
 
   deleteData() {
     print("Delete");
+    colref.doc("John Cena").delete().then(
+          (doc) => print("Document deleted"),
+          onError: (e) => print("Error updating document $e"),
+        );
   }
 
   @override
@@ -74,7 +123,8 @@ class _MyAppState extends State<MyApp> {
                         borderSide:
                             BorderSide(color: Colors.blue, width: 2.0))),
                 onChanged: (String name) {
-                  getStudentName(name);
+                  setStudentName(name);
+                  setState(() {});
                 },
               ),
             ),
@@ -88,7 +138,7 @@ class _MyAppState extends State<MyApp> {
                         borderSide:
                             BorderSide(color: Colors.blue, width: 2.0))),
                 onChanged: (String id) {
-                  getStudentID(id);
+                  setStudentID(id);
                 },
               ),
             ),
@@ -102,7 +152,7 @@ class _MyAppState extends State<MyApp> {
                         borderSide:
                             BorderSide(color: Colors.blue, width: 2.0))),
                 onChanged: (String programID) {
-                  getStudyProgramID(programID);
+                  setStudyProgramID(programID);
                 },
               ),
             ),
@@ -116,7 +166,7 @@ class _MyAppState extends State<MyApp> {
                         borderSide:
                             BorderSide(color: Colors.blue, width: 2.0))),
                 onChanged: (String gpa) {
-                  getStudentGPA(gpa);
+                  setStudentGPA(gpa);
                 },
               ),
             ),
@@ -162,6 +212,16 @@ class _MyAppState extends State<MyApp> {
                       deleteData();
                     },
                     child: Text("Delete")),
+              ],
+            ),
+            ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.all(20.0),
+              children: <Widget>[
+                Text(getStudentName()),
+                Text('Domestic life was never quite my style'),
+                Text('When you smile, you knock me out, I fall apart'),
+                Text('And I thought I was so smart'),
               ],
             )
           ],
