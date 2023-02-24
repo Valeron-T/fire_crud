@@ -87,9 +87,19 @@ class _MyAppState extends State<MyApp> {
       "studentGPA": studentGPA,
       "studyProgramID": studyProgramID
     };
-    colref.where("studentName", isEqualTo: "QukHtPdCzYzfiookf9Hv").get();
+
+    String nameToUpdate = "";
+
+    var a = colref.where("studentName", isEqualTo: studentName).get().then(
+        (snapshot) => {
+              print(snapshot.docs.first.id),
+              nameToUpdate = snapshot.docs.first.id.toString()
+            });
+
+    print(nameToUpdate);
+
     colref
-        .doc("John Cena")
+        .doc(nameToUpdate)
         .set(students_map)
         .then((value) => print("User updated"))
         .catchError((error) => print("Failed to add user: $error"));
