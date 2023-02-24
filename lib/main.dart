@@ -130,6 +130,7 @@ class _MyAppState extends State<MyApp> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextFormField(
+                controller: TextEditingController(text: studentName),
                 decoration: const InputDecoration(
                     labelText: "Student Name",
                     fillColor: Colors.white,
@@ -138,7 +139,6 @@ class _MyAppState extends State<MyApp> {
                             BorderSide(color: Colors.blue, width: 2.0))),
                 onChanged: (String value) {
                   setStudentName(value);
-                  // setState(() {});
                 },
               ),
             ),
