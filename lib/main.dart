@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, must_be_immutable
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -26,9 +26,12 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String? studentName, studentID, studyProgramID;
+  TextEditingController? stdName;
   double? studentGPA;
   CollectionReference colref =
       FirebaseFirestore.instance.collection('MyStudents');
+
+  var colref2 = FirebaseFirestore.instance.collection('MyStudents').snapshots();
 
   setStudentName(String name) {
     this.studentName = name;
@@ -76,6 +79,7 @@ class _MyAppState extends State<MyApp> {
       for (var doc in event.docs) {
         print("${doc.id} => ${doc.data()}");
       }
+      print(event.docs.elementAt(0).id);
     });
   }
 
@@ -126,15 +130,15 @@ class _MyAppState extends State<MyApp> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextFormField(
+                controller: TextEditingController(text: studentName),
                 decoration: const InputDecoration(
                     labelText: "Student Name",
                     fillColor: Colors.white,
                     focusedBorder: OutlineInputBorder(
                         borderSide:
                             BorderSide(color: Colors.blue, width: 2.0))),
-                onChanged: (String name) {
-                  setStudentName(name);
-                  setState(() {});
+                onChanged: (String value) {
+                  setStudentName(value);
                 },
               ),
             ),
@@ -224,16 +228,34 @@ class _MyAppState extends State<MyApp> {
                     child: Text("Delete")),
               ],
             ),
-            ListView(
-              shrinkWrap: true,
-              padding: const EdgeInsets.all(20.0),
-              children: <Widget>[
-                Text(getStudentName()),
-                Text('Domestic life was never quite my style'),
-                Text('When you smile, you knock me out, I fall apart'),
-                Text('And I thought I was so smart'),
-              ],
-            )
+            StreamBuilder<QuerySnapshot>(
+              stream: colref2,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final documents = snapshot.data!.docs;
+                return Expanded(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: documents.length,
+                    itemBuilder: (context, index) {
+                      final document = documents[index];
+                      final data = document.data() as Map<String, dynamic>;
+                      return ListTile(
+                        title: Text(data['studentName']),
+                        subtitle: Text(
+                            "ID: ${data['studentID'].toString()}, GPA: ${data['studentGPA'].toString()}, Course: ${data['studyProgramID'].toString()}"),
+                        onTap: () {
+                          setStudentName(data['studentName']);
+                          print(studentName);
+                        },
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
